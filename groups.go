@@ -198,7 +198,7 @@ func (c *Crowd) findGroups(searchString string, page int) (listGroups, error) {
 	v.Set("start-index", strconv.Itoa(maxCount*page))
 
 	//attrURL := fmt.Sprintf("rest/usermanagement/1/group?groupname=%s&expand=attributes", name)
-	attrURL := "search?"
+	attrURL := "rest/usermanagement/1/search?"
 	url := c.url + attrURL + v.Encode()
 
 	body := `{
