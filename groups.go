@@ -275,3 +275,39 @@ func (c *Crowd) findGroups(searchString string, page int) (listGroups, error) {
 
 	return resultList, err
 }
+
+// GetGroupInfo returns a group
+func (c *Crowd) GetGroupInfo(name string) (*GroupInfo, error) {
+	attrURL := fmt.Sprintf("rest/usermanagement/1/group?groupname=%s&expand=attributes", name)
+	url := c.url + attrURL
+
+	c.Client.Jar = c.cookies
+
+	req, err := http.NewRequest("GET", url, nil)
+	c.SetDefaultHeader(req)
+	// req.SetBasicAuth(c.user, c.passwd)
+	// req.Header.Set("Content-Type", "application/json")
+	// req.Header.Set("Accept", "application/json")
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+	groupInformation, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	groupAttributes := new(GroupInfo)
+	err = json.Unmarshal(groupInformation, groupAttributes)
+	if err != nil {
+		panic(err)
+	}
+
+	return groupAttributes, err
+}
