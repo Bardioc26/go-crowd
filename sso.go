@@ -61,9 +61,10 @@ func (c *Crowd) NewSession(user string, pass string, address string) (Session, e
 	if err != nil {
 		return s, err
 	}
-	req.SetBasicAuth(c.user, c.passwd)
-	req.Header.Set("Accept", "application/xml")
-	req.Header.Set("Content-Type", "application/xml")
+	c.SetDefaultHeader(req)
+	// req.SetBasicAuth(c.user, c.passwd)
+	// req.Header.Set("Accept", "application/xml")
+	// req.Header.Set("Content-Type", "application/xml")
 	resp, err := c.Client.Do(req)
 	if err != nil {
 		return s, err
@@ -117,9 +118,10 @@ func (c *Crowd) ValidateSession(token string, clientaddr string) (Session, error
 	if err != nil {
 		return s, err
 	}
-	req.SetBasicAuth(c.user, c.passwd)
-	req.Header.Set("Accept", "application/xml")
-	req.Header.Set("Content-Type", "application/xml")
+	c.SetDefaultHeader(req)
+	// req.SetBasicAuth(c.user, c.passwd)
+	// req.Header.Set("Accept", "application/xml")
+	// req.Header.Set("Content-Type", "application/xml")
 	resp, err := c.Client.Do(req)
 	if err != nil {
 		return s, err
@@ -166,9 +168,10 @@ func (c *Crowd) InvalidateSession(token string) error {
 	if err != nil {
 		return err
 	}
-	req.SetBasicAuth(c.user, c.passwd)
-	req.Header.Set("Accept", "application/xml")
-	req.Header.Set("Content-Type", "application/xml")
+	c.SetDefaultHeader(req)
+	// req.SetBasicAuth(c.user, c.passwd)
+	// req.Header.Set("Accept", "application/xml")
+	// req.Header.Set("Content-Type", "application/xml")
 	resp, err := c.Client.Do(req)
 	if err != nil {
 		return err
@@ -189,9 +192,10 @@ func (c *Crowd) GetSession(token string) (s Session, err error) {
 	if err != nil {
 		return s, err
 	}
-	req.SetBasicAuth(c.user, c.passwd)
-	req.Header.Set("Accept", "application/xml")
-	req.Header.Set("Content-Type", "application/xml")
+	c.SetDefaultHeader(req)
+	// req.SetBasicAuth(c.user, c.passwd)
+	// req.Header.Set("Accept", "application/xml")
+	// req.Header.Set("Content-Type", "application/xml")
 	resp, err := c.Client.Do(req)
 	if err != nil {
 		return s, err

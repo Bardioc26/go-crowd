@@ -24,9 +24,10 @@ func (c *Crowd) GetCookieConfig() (CookieConfig, error) {
 	if err != nil {
 		return cc, err
 	}
-	req.SetBasicAuth(c.user, c.passwd)
-	req.Header.Set("Accept", "application/xml")
-	req.Header.Set("Content-Type", "application/xml")
+	c.SetDefaultHeader(req)
+	// req.SetBasicAuth(c.user, c.passwd)
+	// req.Header.Set("Accept", "application/xml")
+	// req.Header.Set("Content-Type", "application/xml")
 	resp, err := c.Client.Do(req)
 	if err != nil {
 		return cc, err

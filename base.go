@@ -15,7 +15,7 @@ type Crowd struct {
 	passwd  string
 	url     string
 	cookies http.CookieJar
-	Client *http.Client
+	Client  *http.Client
 }
 
 // New initializes & returns a Crowd object.
@@ -43,4 +43,12 @@ func New(appuser string, apppass string, baseurl string) (Crowd, error) {
 
 func (c *Crowd) get() {
 
+}
+
+// SetDefaultHeader set the headers needed on every request
+func (c *Crowd) SetDefaultHeader(req *http.Request) {
+	req.SetBasicAuth(c.user, c.passwd)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Origin", c.url)
 }

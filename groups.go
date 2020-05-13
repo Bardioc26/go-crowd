@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 // Link is a child of Group
@@ -67,8 +68,9 @@ func (c *Crowd) GetGroups(user string, donested bool) ([]*Group, error) {
 	if err != nil {
 		return groupList.Groups, err
 	}
-	req.SetBasicAuth(c.user, c.passwd)
-	req.Header.Set("Accept", "application/json")
+	c.SetDefaultHeader(req)
+	// req.SetBasicAuth(c.user, c.passwd)
+	// req.Header.Set("Accept", "application/json")
 	resp, err := c.Client.Do(req)
 	if err != nil {
 		return groupList.Groups, err
@@ -115,9 +117,10 @@ func (c *Crowd) GetGroup(name string) (*Group, error) {
 	c.Client.Jar = c.cookies
 
 	req, err := http.NewRequest("GET", url, nil)
-	req.SetBasicAuth(c.user, c.passwd)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
+	c.SetDefaultHeader(req)
+	// req.SetBasicAuth(c.user, c.passwd)
+	// req.Header.Set("Content-Type", "application/json")
+	// req.Header.Set("Accept", "application/json")
 	if err != nil {
 		panic(err)
 	}
@@ -156,9 +159,10 @@ func (c *Crowd) CreateGroup(name string, description string) (status bool) {
 	if err != nil {
 		panic(err)
 	}
-	req.SetBasicAuth(c.user, c.passwd)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
+	c.SetDefaultHeader(req)
+	// req.SetBasicAuth(c.user, c.passwd)
+	// req.Header.Set("Content-Type", "application/json")
+	// req.Header.Set("Accept", "application/json")
 
 	resp, err := c.Client.Do(req)
 	if err != nil {
@@ -175,4 +179,99 @@ func (c *Crowd) CreateGroup(name string, description string) (status bool) {
 
 	return status
 
+}
+
+// FindGroups find groups contains a string
+func (c *Crowd) FindGroups(name string) ([]*Group, error) {
+	result, err := c.findGroups(name, 0)
+	return result.Groups, err
+}
+
+// findGroups find groups contains a string
+// to find all groups that match do resursive
+func (c *Crowd) findGroups(searchString string, page int) (listGroups, error) {
+	maxCount := 16
+	var resultList listGroups
+	v := url.Values{}
+	v.Set("entity-type", "group")
+	v.Set("max-results", strconv.Itoa(maxCount))
+	v.Set("start-index", strconv.Itoa(maxCount*page))
+
+	//attrURL := fmt.Sprintf("rest/usermanagement/1/group?groupname=%s&expand=attributes", name)
+	attrURL := "search?"
+	url := c.url + attrURL + v.Encode()
+
+	body := `{
+		"restriction-type": "boolean-search-restriction",
+		"boolean-logic": "and",
+		"restrictions": [
+				{
+				"restriction-type": "property-search-restriction",
+				"property": {
+					"name": "name",
+					"type": "STRING"
+				},
+				"value": "` + searchString + `",
+				"match-mode": "CONTAINS"
+			},
+			{
+				"restriction-type": "property-search-restriction",
+				"property": {
+				"name": "active",
+				"type": "BOOLEAN"
+				},
+				"match-mode": "EXACTLY_MATCHES",
+				"value": "true"
+			}
+		]
+	}`
+
+	c.Client.Jar = c.cookies
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(body)))
+	c.SetDefaultHeader(req)
+	// req.SetBasicAuth(c.user, c.passwd)
+	// req.Header.Set("Content-Type", "application/json")
+	// req.Header.Set("Accept", "application/json")
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := c.Client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	defer resp.Body.Close()
+	groupInformation, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	groupList := listGroups{}
+	err = json.Unmarshal(groupInformation, &groupList)
+	if err != nil {
+		panic(err)
+	}
+	resultCount := len(groupList.Groups)
+	for _, grp := range groupList.Groups {
+		resultList.Groups = append(resultList.Groups, grp)
+	}
+	if resultCount >= maxCount {
+		groupList, err = c.findGroups(searchString, page+1)
+		if err != nil {
+			panic(err)
+		}
+		for _, grp := range groupList.Groups {
+			resultList.Groups = append(resultList.Groups, grp)
+		}
+	}
+
+	// groupAttributes := new(Group)
+	// err = json.Unmarshal(groupInformation, groupAttributes)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	return resultList, err
 }
